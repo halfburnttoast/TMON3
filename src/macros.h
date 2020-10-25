@@ -35,3 +35,12 @@
 #define _RESET_STACK    \
     ldx #$FF        :   \
     txs
+
+#define _SHORT_DELAY    \
+    .( phx             :   \
+    ldx #$FF        :   \
+    _SDL: dex       :   \
+    cpx #0          :   \
+    bne _SDL        :   \
+    plx .) 
+

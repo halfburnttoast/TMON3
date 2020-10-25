@@ -78,6 +78,10 @@ D_BLK3      = $FB        ; Used by porta_sd_driver.asm
 D_DBL       = $FC        ; Used by porta_sd_driver.asm
 D_DBH       = $FD        ; Used by porta_sd_driver.asm
 ; FE, FF reserved for ISR pointer
+#print B16L
+#print B16H
+#print LINE_IN
+
 
 ; Main entry point
 TMON3_RESET:
@@ -120,7 +124,7 @@ ISR_ENTRY:
 #print ISR_ENTRY
 
 
-TITLE: .byte    LF,CR,"TPC65 - TMONv3.6",0
+TITLE: .byte    LF,CR,"TPC65 - TMONv3.7",0
 
 
 // includes 

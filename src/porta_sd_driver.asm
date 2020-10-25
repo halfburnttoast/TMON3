@@ -169,14 +169,19 @@ SD_WRITE_BLOCK:
     sta D_DBH
 SD_WRITE_BLOCK_FROM: .(
     _BEGIN_SD_CMD
-    jsr READ_BYTE
+    phx
+    ldx #5
+T:  jsr READ_BYTE
     cmp #$0
     bne READY
+    jsr DELAY
+    dex
+    cpx #0
+    bne T
+    plx             ; will only run on fail
     jmp WRITE_FAIL
 READY:
-    ldx #<WRITES
-    ldy #>WRITES
-    jsr PRINTS
+    plx             ; pull from retry loop above
 
     ; send WRITE_BLOCK (CMD24)
     lda #$58
@@ -201,17 +206,15 @@ WF: jsr BTOA
     sty CHAROUT
     lda #' '
     sta CHAROUT
+    jsr NEWLINE
     jmp WRITE_FAIL
 BEGIN_COPY:
-    jsr NEWLINE
     ldx #$0
     ldy #$2
     lda #$FE                    ; send start token
     jsr SD_SEND_BYTE
 COPY_LOOP
     jsr DELAY
-    lda #'.'
-    sta CHAROUT
     _PUSHXY
     ldy #$0
     lda (D_DBL), y
@@ -236,9 +239,6 @@ NO_CARRY:
 L:  jsr READ_BYTE                       ; wait for busy flag to end
     cmp #$0
     beq L
-    ldx #<DONES
-    ldy #>DONES
-    jsr PRINTS
     _END_SD_CMD
     rts
 WRITE_FAIL:
@@ -248,21 +248,18 @@ WRITE_FAIL:
     _END_SD_CMD
     rts
 FAILS:  .byte   "DRIVE WRITE FAIL",0    
-WRITES: .byte   "WRITING BLOCK",LF,CR,0
 .)
 #print SD_WRITE_BLOCK
+#print SD_WRITE_BLOCK_FROM
 
 
 SD_READ_BLOCK:
-    _BEGIN_SD_CMD
     lda #<DATA_BUFFER
     sta D_DBL
     lda #>DATA_BUFFER
     sta D_DBH 
 SD_READ_BLOCK_TO: .(            ; call if using custom databuffer location
-    ldx #<READS
-    ldy #>READS
-    jsr PRINTS
+    _BEGIN_SD_CMD
 
     ; send READ_SINGLE_BLOCK
     lda #$51            ; CMD 17
@@ -313,9 +310,6 @@ NO_CARRY:
     dey 
     bne COPY_LOOP
     jsr READ_BYTE
-    ldx #<DONES
-    ldy #>DONES
-    jsr PRINTS
     _END_SD_CMD
     rts
 READ_FAIL:
@@ -325,7 +319,6 @@ READ_FAIL:
     _END_SD_CMD
     jmp MON_RETURN 
 FAILS:  .byte   "DRIVE READ FAIL",0    
-READS:  .byte   "READING BLOCK",LF,CR,0
 .)
 #print SD_READ_BLOCK
 #print SD_READ_BLOCK_TO
